@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { unstable_noStore as noStore } from 'next/cache'
 import { getSession } from '@/lib/auth'
 import { getSupabase } from '@/lib/supabase'
 import Sidebar from '@/components/Sidebar'
@@ -15,6 +16,7 @@ export default async function LeadsPage({
   const session = await getSession()
   if (!session) redirect('/')
 
+  noStore()
   const { estado, idioma } = await searchParams
 
   let leads: any[] = []
