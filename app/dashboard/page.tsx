@@ -44,6 +44,22 @@ export default async function DashboardPage() {
     name, value, color: ['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444'][i % 5]
   }))
 
+  const fuenteConfig: Record<string, { label: string; color: string }> = {
+    whatsapp: { label: '📱 WhatsApp', color: '#22c55e' },
+    web:      { label: '🌐 Web',      color: '#3b82f6' },
+    crm:      { label: '🖥️ CRM',      color: '#8b5cf6' },
+  }
+  const fuenteCount: Record<string, number> = {}
+  all.forEach(l => { const f = l.fuente ?? 'whatsapp'; fuenteCount[f] = (fuenteCount[f] ?? 0) + 1 })
+  const byFuente = Object.entries(fuenteCount)
+    .map(([fuente, value]) => ({
+      fuente,
+      name: fuenteConfig[fuente]?.label ?? fuente,
+      value,
+      color: fuenteConfig[fuente]?.color ?? '#6b7280',
+    }))
+    .sort((a, b) => b.value - a.value)
+
   const recientes = all.slice(0, 5)
   const stats = [
     { label: 'Total leads', value: total, color: 'blue' },
@@ -84,7 +100,7 @@ export default async function DashboardPage() {
           ))}
         </div>
 
-        <DashboardCharts byEstado={byEstado} byIdioma={byIdioma} />
+        <DashboardCharts byEstado={byEstado} byIdioma={byIdioma} byFuente={byFuente} />
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-8">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
