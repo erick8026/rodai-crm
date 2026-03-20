@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { unstable_noStore as noStore } from 'next/cache'
 import { getSession } from '@/lib/auth'
 import { getSupabase, ESTADOS, Lead } from '@/lib/supabase'
 import Sidebar from '@/components/Sidebar'
@@ -8,6 +9,7 @@ import DashboardCharts from '@/components/DashboardCharts'
 export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
+  noStore()
   const session = await getSession()
   if (!session) redirect('/')
 
