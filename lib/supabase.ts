@@ -1,17 +1,19 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
+// Client-side singleton
 let _supabase: SupabaseClient | null = null
 
 export function getSupabase(): SupabaseClient | null {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   if (!url || !key) return null
-  // Server side: always create a fresh client with no-store fetch to bypass Next.js cache
+
+  // Server-side: always return a fresh instance so Next.js doesn't cache the data
   if (typeof window === 'undefined') {
-    return createClient(url, key, {
-      global: { fetch: (input, init) => fetch(input as RequestInfo, { ...init, cache: 'no-store' }) },
-    })
+    return createClient(url, key)
   }
+
+  // Client-side: reuse singleton
   if (!_supabase) {
     _supabase = createClient(url, key)
   }
@@ -28,7 +30,7 @@ export type Lead = {
   idioma: string
   fecha: string
   estado: 'nuevo' | 'en_seguimiento' | 'cotizacion_enviada' | 'cerrado_ganado' | 'cerrado_perdido'
-  fuente: 'whatsapp' | 'web'
+  fuente: 'whatsapp' | 'web' | 'crm'
   notas: string
   created_at: string
   updated_at: string
