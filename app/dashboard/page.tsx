@@ -10,12 +10,15 @@ export default async function DashboardPage() {
   const session = await getSession()
   if (!session) redirect('/')
 
-  const { data: leads } = await getSupabase()
-    .from('leads')
-    .select('*')
-    .order('created_at', { ascending: false })
+  let all: Lead[] = []
+  try {
+    const sb = getSupabase()
+    if (sb) {
+      const { data } = await sb.from('leads').select('*').order('created_at', { ascending: false })
+      all = data ?? []
+    }
+  } catch (_) {}
 
-  const all: Lead[] = leads ?? []
   const total = all.length
   const nuevos = all.filter(l => l.estado === 'nuevo').length
   const enSeguimiento = all.filter(l => l.estado === 'en_seguimiento').length
@@ -45,6 +48,8 @@ export default async function DashboardPage() {
     { label: 'Tasa conversion', value: `${convRate}%`, color: 'emerald' },
   ]
 
+  const notConfigured = !process.env.NEXT_PUBLIC_SUPABASE_URL
+
   return (
     <div className="flex min-h-screen">
       <Sidebar />
@@ -53,6 +58,19 @@ export default async function DashboardPage() {
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-500 text-sm mt-1">Resumen de oportunidades RODAI</p>
         </div>
+
+        {notConfigured && (
+          <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-5 flex gap-3 items-start">
+            <svg className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <p className="font-semibold text-amber-800 text-sm">Supabase no configurado</p>
+              <p className="text-amber-700 text-sm mt-0.5">Agrega NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY en Vercel Settings &rarr; Environment Variables y redespliega.</p>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {stats.map(s => (
             <div key={s.label} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
@@ -61,14 +79,18 @@ export default async function DashboardPage() {
             </div>
           ))}
         </div>
+
         <DashboardCharts byEstado={byEstado} byIdioma={byIdioma} />
+
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-8">
           <div className="px-6 py-4 border-b border-gray-100">
             <h2 className="font-semibold text-gray-800">Leads recientes</h2>
           </div>
           <div className="divide-y divide-gray-50">
             {recientes.length === 0 && (
-              <p className="px-6 py-8 text-center text-gray-400 text-sm">No hay leads aun</p>
+              <p className="px-6 py-8 text-center text-gray-400 text-sm">
+                {notConfigured ? 'Configura Supabase para ver los leads' : 'No hay leads aun'}
+              </p>
             )}
             {recientes.map(lead => (
               <div key={lead.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition">
@@ -78,10 +100,8 @@ export default async function DashboardPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-gray-400">{lead.fuente}</span>
-                  <span
-                    className="px-2.5 py-1 rounded-full text-xs font-medium text-white"
-                    style={{ backgroundColor: ESTADOS[lead.estado]?.color ?? '#6b7280' }}
-                  >
+                  <span className="px-2.5 py-1 rounded-full text-xs font-medium text-white"
+                    style={{ backgroundColor: ESTADOS[lead.estado]?.color ?? '#6b7280' }}>
                     {ESTADOS[lead.estado]?.label ?? lead.estado}
                   </span>
                 </div>
