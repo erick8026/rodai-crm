@@ -16,6 +16,7 @@ export type Producto = {
   sku: string
   nombre: string
   descripcion: string
+  costo: number
   precio_mensual: number
   precio_anual: number
   activo: boolean
