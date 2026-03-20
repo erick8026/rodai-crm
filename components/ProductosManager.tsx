@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { Producto } from '@/lib/supabase'
 
-const EMPTY = { sku: '', nombre: '', descripcion: '', precio_mensual: '', precio_anual: '' }
+const EMPTY = { sku: '', nombre: '', descripcion: '', costo: '', precio_mensual: '', precio_anual: '' }
 
 function fmt(n: number) {
   return n.toLocaleString('es-CR', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 })
@@ -28,7 +28,7 @@ export default function ProductosManager() {
 
   function startEdit(p: Producto) {
     setEditingId(p.id)
-    setForm({ sku: p.sku, nombre: p.nombre, descripcion: p.descripcion, precio_mensual: String(p.precio_mensual), precio_anual: String(p.precio_anual) })
+    setForm({ sku: p.sku, nombre: p.nombre, descripcion: p.descripcion, costo: String(p.costo), precio_mensual: String(p.precio_mensual), precio_anual: String(p.precio_anual) })
     setShowForm(true)
     setError('')
   }
@@ -44,7 +44,7 @@ export default function ProductosManager() {
     e.preventDefault()
     if (!form.sku.trim() || !form.nombre.trim()) { setError('SKU y nombre son obligatorios'); return }
     setSaving(true); setError('')
-    const body = { ...form, precio_mensual: Number(form.precio_mensual) || 0, precio_anual: Number(form.precio_anual) || 0 }
+    const body = { ...form, costo: Number(form.costo) || 0, precio_mensual: Number(form.precio_mensual) || 0, precio_anual: Number(form.precio_anual) || 0 }
     const url = editingId ? `/api/productos/${editingId}` : '/api/productos'
     const method = editingId ? 'PATCH' : 'POST'
     const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
@@ -101,6 +101,13 @@ export default function ProductosManager() {
                 value={form.descripcion} onChange={e => setForm(p => ({ ...p, descripcion: e.target.value }))}
                 placeholder="Descripción breve del paquete" />
             </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Costo (USD)</label>
+              <input type="number" min="0" step="0.01"
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={form.costo} onChange={e => setForm(p => ({ ...p, costo: e.target.value }))}
+                placeholder="0.00" />
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Precio mensual (USD)</label>
@@ -142,6 +149,7 @@ export default function ProductosManager() {
                 <th className="px-6 py-3 font-medium">SKU</th>
                 <th className="px-6 py-3 font-medium">Nombre</th>
                 <th className="px-6 py-3 font-medium">Descripción</th>
+                <th className="px-6 py-3 font-medium">Costo</th>
                 <th className="px-6 py-3 font-medium">Mensual</th>
                 <th className="px-6 py-3 font-medium">Anual</th>
                 <th className="px-6 py-3 font-medium">Acciones</th>
@@ -155,6 +163,7 @@ export default function ProductosManager() {
                   </td>
                   <td className="px-6 py-4 font-medium text-gray-800">{p.nombre}</td>
                   <td className="px-6 py-4 text-gray-500 text-xs max-w-[200px] truncate">{p.descripcion || '—'}</td>
+                  <td className="px-6 py-4 text-gray-600 font-medium">{fmt(p.costo)}</td>
                   <td className="px-6 py-4 text-gray-800 font-medium">{fmt(p.precio_mensual)}</td>
                   <td className="px-6 py-4 text-gray-800 font-medium">
                     {p.precio_anual > 0 ? fmt(p.precio_anual) : <span className="text-gray-400 text-xs">{fmt(p.precio_mensual * 12)}</span>}
