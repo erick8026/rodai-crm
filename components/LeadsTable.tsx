@@ -206,18 +206,28 @@ export default function LeadsTable({
                 <td className="px-6 py-4 max-w-xs">
                   {editId === lead.id ? (
                     <textarea
-                      className="w-full px-2 py-1 border border-gray-200 rounded-lg text-sm resize-none"
-                      rows={3}
+                      className="w-full px-2 py-1 border border-gray-200 rounded-lg text-sm resize-y min-h-[120px]"
+                      rows={8}
                       value={editData.notas ?? ''}
                       onChange={e => setEditData(p => ({ ...p, notas: e.target.value }))}
-                      placeholder="Agregar comentario..."
+                      placeholder="Agrega comentarios, preguntas frecuentes del cliente, observaciones..."
                     />
                   ) : (
-                    <div className="space-y-1.5">
+                    <div className="space-y-1.5 max-w-sm">
                       {lead.notas && (
-                        <p className="text-xs text-gray-700 bg-yellow-50 border border-yellow-100 rounded-lg px-2 py-1">
-                          {lead.notas}
-                        </p>
+                        <div>
+                          <button
+                            onClick={() => setExpandedFaq(expandedFaq === lead.id + '_notas' ? null : lead.id + '_notas')}
+                            className="text-xs text-yellow-700 font-medium hover:underline"
+                          >
+                            {expandedFaq === lead.id + '_notas' ? '▲ Ocultar notas' : '▼ Notas'}
+                          </button>
+                          {expandedFaq === lead.id + '_notas' && (
+                            <p className="text-xs text-gray-700 bg-yellow-50 border border-yellow-100 rounded-lg px-2 py-1.5 mt-1 whitespace-pre-wrap">
+                              {lead.notas}
+                            </p>
+                          )}
+                        </div>
                       )}
                       {lead.faq_respuestas && (
                         <div>
@@ -228,7 +238,7 @@ export default function LeadsTable({
                             {expandedFaq === lead.id ? '▲ Ocultar conversación' : '▼ Ver conversación'}
                           </button>
                           {expandedFaq === lead.id && (
-                            <p className="text-xs text-gray-500 mt-1 bg-gray-50 border border-gray-100 rounded-lg px-2 py-1.5 whitespace-pre-wrap max-w-xs">
+                            <p className="text-xs text-gray-500 mt-1 bg-gray-50 border border-gray-100 rounded-lg px-2 py-1.5 whitespace-pre-wrap">
                               {lead.faq_respuestas}
                             </p>
                           )}
