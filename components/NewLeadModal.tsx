@@ -3,6 +3,13 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ESTADOS } from '@/lib/supabase'
 
+const IDIOMAS = [
+  { value: 'espanol',   label: 'Español' },
+  { value: 'ingles',    label: 'Inglés' },
+  { value: 'portugues', label: 'Portugués' },
+  { value: 'aleman',    label: 'Alemán' },
+]
+
 export default function NewLeadModal() {
   const [open, setOpen] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -11,11 +18,31 @@ export default function NewLeadModal() {
 
   const [form, setForm] = useState({
     nombre: '', empresa: '', telefono: '', correo: '',
-    idioma: 'espanol', estado: 'nuevo', notas: '',
+    estado: 'nuevo', notas: '',
   })
+  const [idiomasSeleccionados, setIdiomasSeleccionados] = useState<string[]>(['espanol'])
 
   function set(k: string, v: string) {
     setForm(p => ({ ...p, [k]: v }))
+  }
+
+  function toggleIdioma(val: string) {
+    setIdiomasSeleccionados(prev => {
+      if (prev.includes(val)) {
+        // Don't allow deselecting the last one
+        if (prev.length === 1) return prev
+        return prev.filter(i => i !== val)
+      }
+      // Max 2 languages
+      if (prev.length >= 2) return prev
+      return [...prev, val]
+    })
+  }
+
+  function resetForm() {
+    setForm({ nombre: '', empresa: '', telefono: '', correo: '', estado: 'nuevo', notas: '' })
+    setIdiomasSeleccionados(['espanol'])
+    setError('')
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -25,11 +52,15 @@ export default function NewLeadModal() {
     const res = await fetch('/api/leads', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...form, fuente: 'crm' }),
+      body: JSON.stringify({
+        ...form,
+        idioma: idiomasSeleccionados.join(','),
+        fuente: 'crm',
+      }),
     })
     if (res.ok) {
       setOpen(false)
-      setForm({ nombre: '', empresa: '', telefono: '', correo: '', idioma: 'espanol', estado: 'nuevo', notas: '' })
+      resetForm()
       router.refresh()
     } else {
       const d = await res.json()
@@ -52,10 +83,10 @@ export default function NewLeadModal() {
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
-            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
               <h2 className="font-bold text-gray-900">Nueva Oportunidad</h2>
-              <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => { setOpen(false); resetForm() }} className="text-gray-400 hover:text-gray-600">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -102,30 +133,61 @@ export default function NewLeadModal() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Idioma</label>
-                  <select
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={form.idioma} onChange={e => set('idioma', e.target.value)}
-                  >
-                    <option value="espanol">Español</option>
-                    <option value="ingles">Inglés</option>
-                    <option value="portugues">Portugués</option>
-                    <option value="aleman">Alemán</option>
-                  </select>
+              {/* Idiomas — checkboxes, max 2 */}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-2">
+                  Idiomas del asistente
+                  <span className="ml-1 text-gray-400 font-normal">(selecciona hasta 2)</span>
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {IDIOMAS.map(({ value, label }) => {
+                    const selected = idiomasSeleccionados.includes(value)
+                    const disabled = !selected && idiomasSeleccionados.length >= 2
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => toggleIdioma(value)}
+                        disabled={disabled}
+                        className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition ${
+                          selected
+                            ? 'bg-blue-600 border-blue-600 text-white'
+                            : disabled
+                            ? 'bg-gray-50 border-gray-100 text-gray-300 cursor-not-allowed'
+                            : 'bg-white border-gray-200 text-gray-700 hover:border-blue-400 hover:text-blue-600'
+                        }`}
+                      >
+                        <span className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${
+                          selected ? 'bg-white border-white' : 'border-current'
+                        }`}>
+                          {selected && (
+                            <svg className="w-2.5 h-2.5 text-blue-600" fill="currentColor" viewBox="0 0 12 12">
+                              <path d="M10 3L5 8.5 2 5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                            </svg>
+                          )}
+                        </span>
+                        {label}
+                      </button>
+                    )
+                  })}
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Estado</label>
-                  <select
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={form.estado} onChange={e => set('estado', e.target.value)}
-                  >
-                    {Object.entries(ESTADOS).map(([k, v]) => (
-                      <option key={k} value={k}>{v.label}</option>
-                    ))}
-                  </select>
-                </div>
+                {idiomasSeleccionados.length > 0 && (
+                  <p className="text-xs text-gray-400 mt-1.5">
+                    Seleccionado: <strong className="text-gray-600">{idiomasSeleccionados.map(i => IDIOMAS.find(l => l.value === i)?.label).join(' + ')}</strong>
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Estado</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={form.estado} onChange={e => set('estado', e.target.value)}
+                >
+                  {Object.entries(ESTADOS).map(([k, v]) => (
+                    <option key={k} value={k}>{v.label}</option>
+                  ))}
+                </select>
               </div>
 
               <div>
@@ -150,7 +212,7 @@ export default function NewLeadModal() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setOpen(false)}
+                  onClick={() => { setOpen(false); resetForm() }}
                   className="px-5 py-2.5 bg-gray-100 text-gray-600 rounded-xl text-sm hover:bg-gray-200 transition"
                 >
                   Cancelar
