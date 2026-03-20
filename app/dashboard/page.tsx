@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/auth'
 import { getSupabase, ESTADOS, Lead } from '@/lib/supabase'
@@ -27,6 +28,7 @@ export default async function DashboardPage() {
 
   const byEstado = Object.entries(ESTADOS).map(([key, val]) => ({
     name: val.label,
+    estado: key,
     value: all.filter(l => l.estado === key).length,
     color: val.color,
   })).filter(d => d.value > 0)
@@ -83,8 +85,9 @@ export default async function DashboardPage() {
         <DashboardCharts byEstado={byEstado} byIdioma={byIdioma} />
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-8">
-          <div className="px-6 py-4 border-b border-gray-100">
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <h2 className="font-semibold text-gray-800">Leads recientes</h2>
+            <Link href="/leads" className="text-xs text-blue-600 hover:underline">Ver todos →</Link>
           </div>
           <div className="divide-y divide-gray-50">
             {recientes.length === 0 && (
@@ -93,19 +96,20 @@ export default async function DashboardPage() {
               </p>
             )}
             {recientes.map(lead => (
-              <div key={lead.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition">
+              <Link key={lead.id} href={`/leads?estado=${lead.estado}`}
+                className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition block">
                 <div>
                   <p className="font-medium text-sm text-gray-800">{lead.nombre || '-'}</p>
                   <p className="text-xs text-gray-400">{lead.empresa || lead.telefono}</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-xs text-gray-400">{lead.fuente}</span>
+                  <span className="text-xs text-gray-400">{lead.fuente === 'web' ? '🌐 Web' : '📱 WhatsApp'}</span>
                   <span className="px-2.5 py-1 rounded-full text-xs font-medium text-white"
                     style={{ backgroundColor: ESTADOS[lead.estado]?.color ?? '#6b7280' }}>
                     {ESTADOS[lead.estado]?.label ?? lead.estado}
                   </span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
