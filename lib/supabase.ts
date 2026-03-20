@@ -46,8 +46,18 @@ export type Lead = {
   paquetes_contratados: string   // JSON: PaqueteAsignado[]
   frecuencia_pago: 'mensual' | 'anual'
   valor_oportunidad: number
+  fecha_cierre_esperada: string | null
+  probabilidad: number
   created_at: string
   updated_at: string
+}
+
+export const PROBABILIDAD_POR_ESTADO: Record<Lead['estado'], number> = {
+  nuevo: 10,
+  en_seguimiento: 30,
+  cotizacion_enviada: 60,
+  cerrado_ganado: 100,
+  cerrado_perdido: 0,
 }
 
 export const ESTADOS: Record<Lead['estado'], { label: string; color: string }> = {
