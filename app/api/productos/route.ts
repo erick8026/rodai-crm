@@ -21,6 +21,7 @@ export async function POST(req: NextRequest) {
   const { data, error } = await sb.from('productos').insert({
     sku: body.sku, nombre: body.nombre,
     descripcion: body.descripcion ?? '',
+    costo: Number(body.costo) || 0,
     precio_mensual: Number(body.precio_mensual) || 0,
     precio_anual: Number(body.precio_anual) || 0,
     activo: true,
