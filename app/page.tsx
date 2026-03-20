@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -16,12 +16,13 @@ export default function LoginPage() {
     const res = await fetch('/api/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ email, password }),
     })
     if (res.ok) {
       router.push('/dashboard')
     } else {
-      setError('Usuario o contraseña incorrectos')
+      const data = await res.json()
+      setError(data.error ?? 'Error al iniciar sesión')
       setLoading(false)
     }
   }
@@ -37,30 +38,32 @@ export default function LoginPage() {
               </svg>
             </div>
             <h1 className="text-2xl font-bold text-gray-900">RODAI CRM</h1>
-            <p className="text-gray-500 text-sm mt-1">Gestión de oportunidades</p>
+            <p className="text-gray-500 text-sm mt-1">Gestion de oportunidades</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Usuario</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Correo electronico</label>
               <input
-                type="text"
-                value={username}
-                onChange={e => setUsername(e.target.value)}
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                placeholder="Ingresa tu usuario"
+                placeholder="tu@email.com"
                 required
+                autoComplete="email"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Contrasena</label>
               <input
                 type="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                placeholder="Ingresa tu contraseña"
+                placeholder="Tu contrasena"
                 required
+                autoComplete="current-password"
               />
             </div>
             {error && (
