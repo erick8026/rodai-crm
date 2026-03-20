@@ -17,7 +17,7 @@ export default async function LeadsPage({
   if (!session) redirect('/')
 
   noStore()
-  const { estado, idioma } = await searchParams
+  const { estado, idioma, fuente } = await searchParams
 
   let leads: any[] = []
   try {
@@ -39,7 +39,7 @@ export default async function LeadsPage({
           </div>
           <NewLeadModal />
         </div>
-        <LeadsTable leads={leads} initialEstado={estado ?? ''} initialIdioma={idioma ?? ''} />
+        <LeadsTable leads={leads} initialEstado={estado ?? ''} initialIdioma={idioma ?? ''} initialFuente={fuente ?? ''} />
       </main>
     </div>
   )
