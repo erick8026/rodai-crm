@@ -27,6 +27,10 @@ export default async function DashboardPage() {
   const enSeguimiento = all.filter(l => l.estado === 'en_seguimiento').length
   const ganados = all.filter(l => l.estado === 'cerrado_ganado').length
   const convRate = total > 0 ? Math.round((ganados / total) * 100) : 0
+  const valorPipeline = all
+    .filter(l => l.estado !== 'cerrado_perdido')
+    .reduce((sum, l) => sum + (l.valor_oportunidad ?? 0), 0)
+  const fmtUSD = (n: number) => n.toLocaleString('es-CR', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 })
 
   const byEstado = Object.entries(ESTADOS).map(([key, val]) => ({
     name: val.label,
@@ -66,6 +70,7 @@ export default async function DashboardPage() {
     { label: 'Nuevos', value: nuevos, color: 'indigo' },
     { label: 'En seguimiento', value: enSeguimiento, color: 'amber' },
     { label: 'Tasa conversion', value: `${convRate}%`, color: 'emerald' },
+    { label: 'Valor del pipeline', value: fmtUSD(valorPipeline), color: 'green' },
   ]
 
   const notConfigured = !process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -91,7 +96,7 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           {stats.map(s => (
             <div key={s.label} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
               <p className="text-sm text-gray-500 font-medium">{s.label}</p>
