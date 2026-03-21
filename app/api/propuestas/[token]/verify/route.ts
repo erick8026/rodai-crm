@@ -22,8 +22,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
   const stored = normalize(data.cliente_telefono ?? '')
   const input  = normalize(telefono)
 
-  if (!stored || stored !== input) {
-    return NextResponse.json({ valid: false })
+  if (!stored) {
+    // No phone stored — grant access (proposal created before verification was added)
+    return NextResponse.json({ valid: true, propuesta: data })
+  }
+
+  // Try exact match, then last-8-digits match (handles country code differences)
+  const last8 = (n: string) => n.slice(-8)
+  const matches = stored === input || last8(stored) === last8(input)
+
+  if (!matches) {
+    const hint = stored.length >= 4 ? `···${stored.slice(-4)}` : '····'
+    return NextResponse.json({ valid: false, hint })
   }
 
   // Mark as viewed

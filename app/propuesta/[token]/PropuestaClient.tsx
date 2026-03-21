@@ -22,7 +22,8 @@ function PhoneGate({ token, onVerified }: { token: string; onVerified: (data: an
     if (data.valid) {
       onVerified(data.propuesta)
     } else {
-      setError('Número incorrecto. Verifica e intenta de nuevo.')
+      const hint = data.hint ? ` El número registrado termina en ${data.hint}.` : ''
+      setError(`Número incorrecto.${hint} Verifica e intenta de nuevo.`)
     }
   }
 
