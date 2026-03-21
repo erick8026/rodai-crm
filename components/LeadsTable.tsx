@@ -25,6 +25,7 @@ export default function LeadsTable({
   const [editId, setEditId] = useState<string | null>(null)
   const [editData, setEditData] = useState<Partial<Lead> & { paquetes?: PaqueteAsignado[] }>({})
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
   const [expandedFaq, setExpandedFaq] = useState<string | null>(null)
   const [productos, setProductos] = useState<Producto[]>([])
   const router = useRouter()
@@ -81,18 +82,30 @@ export default function LeadsTable({
 
   async function saveEdit(id: string) {
     setSaving(true)
+    setSaveError('')
     const { paquetes, ...rest } = editData
-    await fetch(`/api/leads/${id}`, {
+    const payload = {
+      ...rest,
+      paquetes_contratados: JSON.stringify(paquetes ?? []),
+      valor_oportunidad: editData.valor_oportunidad ?? 0,
+      // convert empty string to null so Supabase date column doesn't reject it
+      fecha_cierre_esperada: editData.fecha_cierre_esperada || null,
+      probabilidad: editData.probabilidad ?? 10,
+    }
+    const res = await fetch(`/api/leads/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...rest,
-        paquetes_contratados: JSON.stringify(paquetes ?? []),
-        valor_oportunidad: editData.valor_oportunidad ?? 0,
-      }),
+      body: JSON.stringify(payload),
     })
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}))
+      setSaveError(d.error ?? 'Error al guardar')
+      setSaving(false)
+      return
+    }
     setSaving(false)
     setEditId(null)
+    setSaveError('')
     router.refresh()
   }
 
@@ -419,20 +432,23 @@ export default function LeadsTable({
                   {/* Acciones */}
                   <td className="px-6 py-4">
                     {editId === lead.id ? (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => saveEdit(lead.id)}
-                          disabled={saving}
-                          className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700 disabled:opacity-60"
-                        >
-                          {saving ? '...' : 'Guardar'}
-                        </button>
-                        <button
-                          onClick={() => setEditId(null)}
-                          className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs hover:bg-gray-200"
-                        >
-                          Cancelar
-                        </button>
+                      <div className="space-y-1">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => saveEdit(lead.id)}
+                            disabled={saving}
+                            className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700 disabled:opacity-60"
+                          >
+                            {saving ? '...' : 'Guardar'}
+                          </button>
+                          <button
+                            onClick={() => { setEditId(null); setSaveError('') }}
+                            className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs hover:bg-gray-200"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                        {saveError && <p className="text-xs text-red-500 max-w-[140px]">{saveError}</p>}
                       </div>
                     ) : (
                       <button
