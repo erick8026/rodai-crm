@@ -29,6 +29,7 @@ export default function LeadsTable({
   const [expandedFaq, setExpandedFaq] = useState<string | null>(null)
   const [generatingPropuesta, setGeneratingPropuesta] = useState<string | null>(null)
   const [copiedPropuesta, setCopiedPropuesta] = useState<string | null>(null)
+  const [propuestaError, setPropuestaError] = useState<string | null>(null)
   const [productos, setProductos] = useState<Producto[]>([])
   const router = useRouter()
 
@@ -113,23 +114,37 @@ export default function LeadsTable({
 
   async function generarPropuesta(lead: Lead) {
     setGeneratingPropuesta(lead.id)
-    const res = await fetch('/api/propuestas', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        lead_id: lead.id,
-        cliente_nombre: lead.nombre || 'Cliente',
-        cliente_empresa: lead.empresa || '',
-        plan_sku: 'LIA-001',
-      }),
-    })
-    setGeneratingPropuesta(null)
-    if (!res.ok) return
-    const { token } = await res.json()
-    const url = `${window.location.origin}/propuesta/${token}`
-    await navigator.clipboard.writeText(url)
-    setCopiedPropuesta(lead.id)
-    setTimeout(() => setCopiedPropuesta(null), 3000)
+    setPropuestaError(null)
+    try {
+      const res = await fetch('/api/propuestas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          lead_id: lead.id,
+          cliente_nombre: lead.nombre || 'Cliente',
+          cliente_empresa: lead.empresa || '',
+          plan_sku: 'LIA-001',
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setPropuestaError(data.error ?? 'Error al generar propuesta')
+        return
+      }
+      const url = `https://app.rodai.io/propuesta/${data.token}`
+      try {
+        await navigator.clipboard.writeText(url)
+        setCopiedPropuesta(lead.id)
+        setTimeout(() => setCopiedPropuesta(null), 4000)
+      } catch {
+        // Clipboard failed — show the link directly
+        setPropuestaError(`Link: ${url}`)
+      }
+    } catch (e: any) {
+      setPropuestaError('Error de red')
+    } finally {
+      setGeneratingPropuesta(null)
+    }
   }
 
   function clearFilters() {
@@ -492,6 +507,9 @@ export default function LeadsTable({
                             ? '✓ Link copiado'
                             : '📄 Propuesta'}
                         </button>
+                        {propuestaError && (
+                          <p className="text-xs text-red-500 max-w-[150px] break-all">{propuestaError}</p>
+                        )}
                       </div>
                     )}
                   </td>
