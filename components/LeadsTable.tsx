@@ -132,13 +132,29 @@ export default function LeadsTable({
         return
       }
       const url = `https://app.rodai.io/propuesta/${data.token}`
+      let copied = false
       try {
         await navigator.clipboard.writeText(url)
+        copied = true
+      } catch {
+        // fallback for browsers that block clipboard API
+        try {
+          const ta = document.createElement('textarea')
+          ta.value = url
+          ta.style.position = 'fixed'
+          ta.style.opacity = '0'
+          document.body.appendChild(ta)
+          ta.focus()
+          ta.select()
+          copied = document.execCommand('copy')
+          document.body.removeChild(ta)
+        } catch { copied = false }
+      }
+      if (copied) {
         setCopiedPropuesta(lead.id)
         setTimeout(() => setCopiedPropuesta(null), 4000)
-      } catch {
-        // Clipboard failed — show the link directly
-        setPropuestaError(`Link: ${url}`)
+      } else {
+        setPropuestaError(url)
       }
     } catch (e: any) {
       setPropuestaError('Error de red')
@@ -508,7 +524,14 @@ export default function LeadsTable({
                             : '📄 Propuesta'}
                         </button>
                         {propuestaError && (
-                          <p className="text-xs text-red-500 max-w-[150px] break-all">{propuestaError}</p>
+                          <a
+                            href={propuestaError}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-600 hover:underline max-w-[150px] break-all block"
+                          >
+                            Abrir propuesta →
+                          </a>
                         )}
                       </div>
                     )}
