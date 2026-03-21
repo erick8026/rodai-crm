@@ -19,7 +19,7 @@ export default async function PropuestaPage({ params }: { params: Promise<{ toke
   const propuesta = await getPropuesta(token)
   if (!propuesta) notFound()
 
-  const plan = PLANES[propuesta.plan_sku] ?? PLANES['LIA-001']
+  const plan = PLANES[propuesta.plan_sku] ?? PLANES['ROD-PLN-ST-01']
   const color = plan.color
 
   const fecha = new Date(propuesta.created_at).toLocaleDateString('es-CR', {

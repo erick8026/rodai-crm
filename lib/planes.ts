@@ -15,8 +15,8 @@ export type PlanData = {
 }
 
 export const PLANES: Record<string, PlanData> = {
-  'LIA-001': {
-    sku: 'LIA-001',
+  'ROD-PLN-ST-01': {
+    sku: 'ROD-PLN-ST-01',
     nombre: 'Plan Lía',
     subtitulo: 'Asistente Inteligente',
     setup: 50,
@@ -96,8 +96,8 @@ export const PLANES: Record<string, PlanData> = {
     ],
   },
 
-  'ELIAN-001': {
-    sku: 'ELIAN-001',
+  'ROD-PLN-BU-01': {
+    sku: 'ROD-PLN-BU-01',
     nombre: 'Plan Elian',
     subtitulo: 'Generación de Clientes',
     setup: 100,
@@ -178,8 +178,8 @@ export const PLANES: Record<string, PlanData> = {
     ],
   },
 
-  'PRO-001': {
-    sku: 'PRO-001',
+  'ROD-PLN-PR-01': {
+    sku: 'ROD-PLN-PR-01',
     nombre: 'Plan PRO',
     subtitulo: 'Automatización de Ventas',
     setup: 300,
