@@ -235,7 +235,7 @@ export default async function PropuestaPage({ params }: { params: Promise<{ toke
         <section className="text-center space-y-4 pt-4">
           <p className="text-[#b9c6ee] text-base">¿Listo para automatizar su negocio?</p>
           <a
-            href="https://wa.me/50363143273?text=Hola%2C%20quiero%20activar%20el%20Plan%20L%C3%ADa%20de%20RODAI"
+            href="https://wa.me/50377420672?text=Hola%2C%20vi%20la%20propuesta%20del%20Plan%20L%C3%ADa%20de%20RODAI%20y%20me%20interesa%20activarlo"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-block bg-[#29d17d] hover:bg-[#22b86a] text-[#07112f] font-bold text-lg px-10 py-4 rounded-full transition-colors"
