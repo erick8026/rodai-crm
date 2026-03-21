@@ -36,9 +36,24 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
     return NextResponse.json({ valid: false, hint })
   }
 
-  // Mark as viewed
+  // Mark as viewed + send Telegram notification (first time only)
   if (!data.visto_at) {
     await sb.from('propuestas').update({ visto_at: new Date().toISOString() }).eq('token', token)
+
+    const msg = [
+      `👀 *Propuesta vista por el cliente*`,
+      ``,
+      `👤 *Cliente:* ${data.cliente_nombre}${data.cliente_empresa ? ` · ${data.cliente_empresa}` : ''}`,
+      `📦 *Plan:* ${data.plan_sku}`,
+      `📱 *Teléfono:* ${data.cliente_telefono || '—'}`,
+      `🔗 Link: https://app.rodai.io/propuesta/${token}`,
+    ].join('\n')
+
+    await fetch(`https://api.telegram.org/bot8629381683:AAEWEolkBvfUATbNwWxku1A6kD53xhLULXg/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: '675855669', text: msg, parse_mode: 'Markdown' }),
+    }).catch(() => {}) // don't block if Telegram fails
   }
 
   return NextResponse.json({ valid: true, propuesta: data })
