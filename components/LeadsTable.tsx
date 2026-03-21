@@ -175,6 +175,7 @@ export default function LeadsTable({
   const hasFilters = search || filterEstado || filterIdioma || filterFuente
 
   return (
+    <>
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
       {/* Filters */}
       <div className="px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row gap-3 flex-wrap">
@@ -593,5 +594,6 @@ export default function LeadsTable({
         </div>
       </div>
     )}
+    </>
   )
 }
