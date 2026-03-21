@@ -124,6 +124,7 @@ export default function LeadsTable({
           cliente_nombre: lead.nombre || 'Cliente',
           cliente_empresa: lead.empresa || '',
           plan_sku: parsePaquetes(lead.paquetes_contratados)[0]?.sku ?? 'ROD-PLN-ST-01',
+          cliente_telefono: lead.telefono ?? '',
         }),
       })
       const data = await res.json()

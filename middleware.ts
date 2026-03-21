@@ -10,7 +10,7 @@ export async function middleware(req: NextRequest) {
   if (pathname === '/' || pathname.startsWith('/api/auth')) return NextResponse.next()
   // Allow n8n POST to /api/leads (checked by API key inside the handler)
   if (pathname === '/api/leads' && req.method === 'POST') return NextResponse.next()
-  // Allow public proposal pages (no auth required — token acts as the key)
+  // Allow public proposal pages (phone verification acts as the key)
   if (pathname.startsWith('/propuesta/')) return NextResponse.next()
   if (pathname.startsWith('/api/propuestas/')) return NextResponse.next()
 

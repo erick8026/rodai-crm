@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   if (!sb) return NextResponse.json({ error: 'Supabase not configured' }, { status: 503 })
 
   const body = await req.json()
-  const { lead_id, cliente_nombre, cliente_empresa, plan_sku, notas_propuesta } = body
+  const { lead_id, cliente_nombre, cliente_empresa, plan_sku, notas_propuesta, cliente_telefono } = body
 
   if (!cliente_nombre) return NextResponse.json({ error: 'cliente_nombre requerido' }, { status: 400 })
 
@@ -22,8 +22,9 @@ export async function POST(req: NextRequest) {
     lead_id: lead_id ?? null,
     cliente_nombre,
     cliente_empresa: cliente_empresa ?? '',
-    plan_sku: plan_sku ?? 'LIA-001',
+    plan_sku: plan_sku ?? 'ROD-PLN-ST-01',
     notas_propuesta: notas_propuesta ?? '',
+    cliente_telefono: cliente_telefono ?? '',
   }).select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
