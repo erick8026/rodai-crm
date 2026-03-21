@@ -30,6 +30,7 @@ export default function LeadsTable({
   const [generatingPropuesta, setGeneratingPropuesta] = useState<string | null>(null)
   const [copiedPropuesta, setCopiedPropuesta] = useState<string | null>(null)
   const [propuestaError, setPropuestaError] = useState<string | null>(null)
+  const [propuestaModal, setPropuestaModal] = useState<{ lead: Lead; telefono: string } | null>(null)
   const [productos, setProductos] = useState<Producto[]>([])
   const router = useRouter()
 
@@ -57,7 +58,6 @@ export default function LeadsTable({
       nombre: lead.nombre,
       empresa: lead.empresa,
       correo: lead.correo,
-      telefono: lead.telefono,
       frecuencia_pago: lead.frecuencia_pago ?? 'mensual',
       paquetes: parsePaquetes(lead.paquetes_contratados),
       fecha_cierre_esperada: lead.fecha_cierre_esperada ?? '',
@@ -113,9 +113,10 @@ export default function LeadsTable({
     router.refresh()
   }
 
-  async function generarPropuesta(lead: Lead) {
+  async function generarPropuesta(lead: Lead, telefono: string) {
     setGeneratingPropuesta(lead.id)
     setPropuestaError(null)
+    setPropuestaModal(null)
     try {
       const res = await fetch('/api/propuestas', {
         method: 'POST',
@@ -125,7 +126,7 @@ export default function LeadsTable({
           cliente_nombre: lead.nombre || 'Cliente',
           cliente_empresa: lead.empresa || '',
           plan_sku: parsePaquetes(lead.paquetes_contratados)[0]?.sku ?? 'ROD-PLN-ST-01',
-          cliente_telefono: lead.telefono ?? '',
+          cliente_telefono: telefono,
         }),
       })
       const data = await res.json()
@@ -139,7 +140,6 @@ export default function LeadsTable({
         await navigator.clipboard.writeText(url)
         copied = true
       } catch {
-        // fallback for browsers that block clipboard API
         try {
           const ta = document.createElement('textarea')
           ta.value = url
@@ -158,7 +158,7 @@ export default function LeadsTable({
       } else {
         setPropuestaError(url)
       }
-    } catch (e: any) {
+    } catch {
       setPropuestaError('Error de red')
     } finally {
       setGeneratingPropuesta(null)
@@ -281,12 +281,6 @@ export default function LeadsTable({
                           placeholder="Correo"
                           value={editData.correo ?? ''}
                           onChange={e => setEditData(p => ({ ...p, correo: e.target.value }))}
-                        />
-                        <input
-                          className="w-full px-2 py-1 border border-gray-200 rounded-lg text-sm"
-                          placeholder="Teléfono (ej: 50688887777)"
-                          value={editData.telefono ?? ''}
-                          onChange={e => setEditData(p => ({ ...p, telefono: e.target.value }))}
                         />
                       </div>
                     ) : (
@@ -521,7 +515,7 @@ export default function LeadsTable({
                           Editar
                         </button>
                         <button
-                          onClick={() => generarPropuesta(lead)}
+                          onClick={() => setPropuestaModal({ lead, telefono: lead.telefono ?? '' })}
                           disabled={generatingPropuesta === lead.id}
                           className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700 disabled:opacity-60 transition whitespace-nowrap"
                         >
@@ -551,5 +545,53 @@ export default function LeadsTable({
         </table>
       </div>
     </div>
+
+    {/* Modal — Confirmar teléfono para propuesta */}
+    {propuestaModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4">
+          <div>
+            <h2 className="font-semibold text-gray-800 text-lg">Generar propuesta</h2>
+            <p className="text-sm text-gray-500 mt-0.5">
+              {propuestaModal.lead.nombre || 'Cliente'}
+              {propuestaModal.lead.empresa ? ` · ${propuestaModal.lead.empresa}` : ''}
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Teléfono de verificación del cliente
+            </label>
+            <input
+              type="tel"
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Ej: 50688887777"
+              value={propuestaModal.telefono}
+              onChange={e => setPropuestaModal(m => m ? { ...m, telefono: e.target.value } : null)}
+              autoFocus
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              El cliente usará este número para acceder a su propuesta. No modifica el contacto en el CRM.
+            </p>
+          </div>
+
+          <div className="flex gap-2 pt-1">
+            <button
+              onClick={() => generarPropuesta(propuestaModal.lead, propuestaModal.telefono)}
+              disabled={!propuestaModal.telefono.trim() || generatingPropuesta === propuestaModal.lead.id}
+              className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-60 transition"
+            >
+              {generatingPropuesta === propuestaModal.lead.id ? 'Generando...' : 'Generar y copiar link'}
+            </button>
+            <button
+              onClick={() => setPropuestaModal(null)}
+              className="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl text-sm hover:bg-gray-200 transition"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
   )
 }
