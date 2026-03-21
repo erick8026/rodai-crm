@@ -26,9 +26,10 @@ export default async function PropuestaPage({ params }: { params: Promise<{ toke
     <div className="min-h-screen bg-[#07112f] text-[#ecf2ff]">
       {/* Header */}
       <header className="border-b border-white/10 px-6 py-5 flex items-center justify-between max-w-4xl mx-auto">
-        <div>
-          <span className="text-2xl font-bold text-white tracking-tight">RODAI</span>
-          <span className="ml-2 text-xs text-[#33b6ff] font-medium uppercase tracking-widest">Propuesta Comercial</span>
+        <div className="flex items-center gap-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="https://rodai.io/assets/logo.jpg" alt="RODAI" className="h-10 w-auto rounded-lg" />
+          <span className="text-xs text-[#33b6ff] font-medium uppercase tracking-widest">Propuesta Comercial</span>
         </div>
         <span className="text-xs text-[#b9c6ee]">{fecha}</span>
       </header>
