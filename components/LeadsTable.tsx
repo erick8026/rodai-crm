@@ -57,6 +57,7 @@ export default function LeadsTable({
       nombre: lead.nombre,
       empresa: lead.empresa,
       correo: lead.correo,
+      telefono: lead.telefono,
       frecuencia_pago: lead.frecuencia_pago ?? 'mensual',
       paquetes: parsePaquetes(lead.paquetes_contratados),
       fecha_cierre_esperada: lead.fecha_cierre_esperada ?? '',
@@ -280,6 +281,12 @@ export default function LeadsTable({
                           placeholder="Correo"
                           value={editData.correo ?? ''}
                           onChange={e => setEditData(p => ({ ...p, correo: e.target.value }))}
+                        />
+                        <input
+                          className="w-full px-2 py-1 border border-gray-200 rounded-lg text-sm"
+                          placeholder="Teléfono (ej: 50688887777)"
+                          value={editData.telefono ?? ''}
+                          onChange={e => setEditData(p => ({ ...p, telefono: e.target.value }))}
                         />
                       </div>
                     ) : (
