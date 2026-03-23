@@ -33,6 +33,18 @@ type WorkflowStat = {
   activo: boolean
 }
 
+type ChatbotHealth = {
+  id: string
+  name: string
+  canal: string
+  workflowActivo: boolean
+  waState: string
+  waConectado: boolean
+  lastMsgAgo: number | null
+  status: 'ok' | 'warning' | 'error'
+  problemas: string[]
+}
+
 const WORKFLOWS_MONITOREADOS: WorkflowStat[] = [
   { name: 'RODAI AGENTE', id: 'ICNcYJoaRZTqarIE', hoy: 0, errores: 0, activo: true },
   { name: 'MAESTRORODAI', id: 'ulLJOb6ThtbhuTiR', hoy: 0, errores: 0, activo: true },
@@ -75,6 +87,7 @@ function StatCard({ label, value, sub, color }: { label: string; value: string |
 export default function MonitorClient() {
   const [conversaciones, setConversaciones] = useState<Conversacion[]>([])
   const [incidentes, setIncidentes] = useState<Incidente[]>([])
+  const [chatbots, setChatbots] = useState<ChatbotHealth[]>([])
   const [connected, setConnected] = useState(false)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
   const [pulsing, setPulsing] = useState(false)
@@ -116,6 +129,7 @@ export default function MonitorClient() {
       prevCountRef.current = newCount
       setConversaciones(data.conversaciones ?? [])
       setIncidentes(data.incidentes ?? [])
+      setChatbots(data.chatbots ?? [])
       setLastUpdate(new Date())
       setConnected(true)
       setFetchError(null)
@@ -214,6 +228,80 @@ export default function MonitorClient() {
           color="bg-slate-900 border-slate-700"
         />
       </div>
+
+      {/* Panel salud de chatbots */}
+      {chatbots.length > 0 && (
+        <div className="bg-slate-900 border border-slate-700 rounded-xl p-5">
+          <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4">
+            Estado de Chatbots
+          </h2>
+          <div className="space-y-3">
+            {chatbots.map(bot => (
+              <div key={bot.id} className={`rounded-lg border p-4 ${
+                bot.status === 'ok' ? 'bg-emerald-950/40 border-emerald-800' :
+                bot.status === 'warning' ? 'bg-yellow-950/40 border-yellow-800' :
+                'bg-red-950/40 border-red-800'
+              }`}>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <span className={`w-3 h-3 rounded-full ${
+                      bot.status === 'ok' ? 'bg-emerald-400 animate-pulse' :
+                      bot.status === 'warning' ? 'bg-yellow-400 animate-pulse' :
+                      'bg-red-500'
+                    }`} />
+                    <span className="text-white font-semibold">{bot.name}</span>
+                    <span className="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded">{bot.canal}</span>
+                  </div>
+                  <span className={`text-xs font-bold px-2 py-1 rounded ${
+                    bot.status === 'ok' ? 'bg-emerald-900 text-emerald-300' :
+                    bot.status === 'warning' ? 'bg-yellow-900 text-yellow-300' :
+                    'bg-red-900 text-red-300'
+                  }`}>
+                    {bot.status === 'ok' ? '✓ OPERATIVO' : bot.status === 'warning' ? '⚠ ADVERTENCIA' : '✗ NO RESPONDE'}
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-3 text-xs">
+                  <div className={`rounded p-2 text-center ${bot.workflowActivo ? 'bg-emerald-900/40' : 'bg-red-900/40'}`}>
+                    <p className="text-slate-400 mb-1">Workflow n8n</p>
+                    <p className={`font-semibold ${bot.workflowActivo ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {bot.workflowActivo ? '✓ Activo' : '✗ Inactivo'}
+                    </p>
+                  </div>
+                  <div className={`rounded p-2 text-center ${bot.waConectado ? 'bg-emerald-900/40' : 'bg-red-900/40'}`}>
+                    <p className="text-slate-400 mb-1">WhatsApp</p>
+                    <p className={`font-semibold ${bot.waConectado ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {bot.waConectado ? '✓ Conectado' : `✗ ${bot.waState}`}
+                    </p>
+                  </div>
+                  <div className={`rounded p-2 text-center ${
+                    bot.lastMsgAgo === null ? 'bg-slate-800' :
+                    bot.lastMsgAgo <= 60 ? 'bg-emerald-900/40' : 'bg-yellow-900/40'
+                  }`}>
+                    <p className="text-slate-400 mb-1">Último mensaje</p>
+                    <p className={`font-semibold ${
+                      bot.lastMsgAgo === null ? 'text-slate-400' :
+                      bot.lastMsgAgo <= 60 ? 'text-emerald-400' : 'text-yellow-400'
+                    }`}>
+                      {bot.lastMsgAgo === null ? 'Sin datos' :
+                       bot.lastMsgAgo < 60 ? `Hace ${bot.lastMsgAgo}m` :
+                       `Hace ${Math.floor(bot.lastMsgAgo/60)}h`}
+                    </p>
+                  </div>
+                </div>
+                {bot.problemas.length > 0 && (
+                  <div className="mt-3 space-y-1">
+                    {bot.problemas.map((p, i) => (
+                      <p key={i} className="text-xs text-red-300 flex items-center gap-1">
+                        <span>⚠</span> {p}
+                      </p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Estado de workflows + Heatmap */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
